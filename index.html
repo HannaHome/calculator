@@ -1,1 +1,305 @@
-<!DOCTYPE html> <html lang="zh-Hant"> <head>     <meta charset="UTF-8">     <meta name="viewport" content="width=device-width, initial-scale=1.0">     <title>強化算式列出計算機</title>     <!-- 載入 Tailwind CSS -->     <script src="https://cdn.tailwindcss.com"></script>     <!-- 設定 Tailwind CSS 配置，使用 Inter 字體和 iOS-like 顏色 -->     <script>         tailwind.config = {             theme: {                 extend: {                     fontFamily: {                         sans: ['Inter', 'sans-serif'],                     },                     colors: {                         'app-bg': '#000000',      // 應用程式背景：純黑                         'display-text': '#ffffff',// 顯示文字：白色                         'num-button': '#333333',  // 數字按鈕：深灰                         'op-button': '#ff9500',   // 運算符按鈕：亮橘色                         'ctrl-button': '#a6a6a6', // 控制按鈕：淺灰 (C)                         'ctrl-text': '#000000',   // 控制按鈕文字：黑色                     }                 }             }         }     </script>     <style>         /* 確保整個應用程式佔滿螢幕並使用黑色背景 */         body {             background-color: var(--tw-colors-app-bg);         }          /* 計算機容器，在寬螢幕上保持最大寬度，在小螢幕上佔滿 */         .calculator-container {             width: 100%;             max-width: 450px; /* 限制最大寬度以保持舒適的尺寸 */             min-height: 80vh; /* 最小高度，讓它看起來大 */         }          /* 顯示區域的特殊佈局，確保內容靠右下方對齊 */         #display-area {             min-height: 150px; /* 增加高度以容納更多文字 */             padding: 10px 20px;             display: flex;             flex-direction: column;             justify-content: flex-end;             align-items: flex-end;         }                  /* 算式保留區：允許換行，最多兩行，更清晰地列出算式 */         #historyDisplay {             font-size: 1.5rem; /* 較小的字體 */             line-height: 1.2;             color: #b0b0b0; /* 較亮的顏色，增強可讀性 */             max-width: 100%;             height: 3.6rem; /* 確保最多兩行高度 (1.2 * 1.5rem * 2) */             overflow-y: hidden;             text-align: right;             white-space: normal; /* 允許文字換行 */             word-break: break-word; /* 允許長數字在需要時斷開 */         }          /* 結果顯示區的字體縮放，確保大數字能顯示 */         #resultDisplay {             font-weight: 300; /* 輕盈的字體 */             line-height: 1;             /* 調整字體大小，使其能適應螢幕寬度 */             font-size: clamp(3rem, 15vw, 6rem);              max-width: 100%;             white-space: nowrap;             overflow-x: hidden;             text-overflow: clip;         }          /* 通用按鈕樣式，使用圓形或圓角，並確保尺寸大 */         .calc-button {             /* 讓按鈕高度等於寬度，保持正方形 */             width: 100%;             padding-bottom: 100%; /* 100% of the parent width */             position: relative;             border-radius: 9999px; /* 圓形按鈕 */             display: flex;             justify-content: center;             align-items: center;             font-size: 2rem;             font-weight: 400;             transition: background-color 0.1s;             touch-action: manipulation; /* 增強移動設備觸控響應 */             user-select: none;         }          /* 讓按鈕內容居中 */         .calc-button > span {             position: absolute;             top: 50%;             left: 50%;             transform: translate(-50%, -50%);         }          /* 按鈕按下時的效果 */         .calc-button:active {             filter: brightness(120%);         }          /* 零按鈕的樣式：寬度是兩個按鈕加間距 */         .zero-button {             grid-column: span 2;             padding-bottom: 50%; /* 保持高度與單個按鈕相同 */             border-radius: 9999px;             /* 調整內容對齊，使其靠左 */             justify-content: flex-start;              padding-left: 30px;          }          .zero-button > span {             left: 20%; /* 讓 0 靠左對齊 */             transform: translate(0, -50%);         }          /* 運算符按鈕激活狀態，模擬 iOS 的亮色背景 */         .op-active {             background-color: white !important;             color: var(--tw-colors-op-button) !important;         }              </style> </head> <body class="bg-app-bg font-sans flex items-end justify-center min-h-screen p-4 pb-12 sm:pb-4">      <!-- 計算機主容器，使用 flex-col-reverse 使按鈕在下方 -->     <div class="calculator-container flex flex-col justify-end bg-app-bg">                  <!-- 顯示區域 (Display Area) -->         <div id="display-area">             <!-- 算式保留區 (History/Expression) -->             <div id="historyDisplay">0</div>                          <!-- 結果顯示區 (Current Result/Input) -->             <div id="resultDisplay" class="text-display-text">0</div>         </div>          <!-- 按鈕區域 (Button Grid) -->         <div class="grid grid-cols-4 gap-3">                          <!-- 第一行：控制按鈕 (C) -->             <button data-value="C" class="calc-button bg-ctrl-button hover:bg-gray-400 text-ctrl-text">                 <span id="clearButtonLabel">AC</span>             </button>             <button data-value="+/-" class="calc-button bg-ctrl-button hover:bg-gray-400 text-ctrl-text">                 <span>±</span>             </button>             <button data-value="%" class="calc-button bg-ctrl-button hover:bg-gray-400 text-ctrl-text">                 <span>%</span>             </button>             <button data-value="/" class="calc-button bg-op-button hover:bg-orange-400 text-display-text" data-type="operator">                 <span>÷</span>             </button>                          <!-- 第二行：數字與乘法 -->             <button data-value="7" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>7</span></button>             <button data-value="8" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>8</span></button>             <button data-value="9" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>9</span></button>             <button data-value="*" class="calc-button bg-op-button hover:bg-orange-400 text-display-text" data-type="operator">                 <span>×</span>             </button>              <!-- 第三行：數字與減法 -->             <button data-value="4" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>4</span></button>             <button data-value="5" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>5</span></button>             <button data-value="6" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>6</span></button>             <button data-value="-" class="calc-button bg-op-button hover:bg-orange-400 text-display-text" data-type="operator">                 <span>−</span>             </button>              <!-- 第四行：數字與加法 -->             <button data-value="1" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>1</span></button>             <button data-value="2" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>2</span></button>             <button data-value="3" class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>3</span></button>             <button data-value="+" class="calc-button bg-op-button hover:bg-orange-400 text-display-text" data-type="operator">                 <span>+</span>             </button>              <!-- 第五行：0、小數點與等於 -->             <button data-value="0" class="calc-button zero-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>0</span></button>             <button data-value="." class="calc-button bg-num-button hover:bg-gray-600 text-display-text" data-type="number"><span>.</span></button>             <button data-value="=" class="calc-button bg-op-button hover:bg-orange-400 text-display-text" data-type="equals">                 <span>=</span>             </button>         </div>     </div>      <!-- JavaScript 邏輯 -->     <script>         // 獲取 DOM 元素         const historyDisplay = document.getElementById('historyDisplay');         const resultDisplay = document.getElementById('resultDisplay');         const buttons = document.querySelectorAll('.calc-button');         const clearButtonLabel = document.getElementById('clearButtonLabel');          // 計算機狀態         let currentExpression = ''; // 儲存完整的運算式 (例如: 10+5*2)         let lastResult = null; // 儲存上次計算的結果         let isResultDisplayed = false; // 標記是否剛顯示完結果 (按下了=)         let awaitingSecondOperand = false; // 標記是否剛輸入運算符          /**          * 轉換運算式中的符號，用於更美觀的顯示          * @param {string} exp - 原始運算式 (使用 *, /)          * @returns {string} - 顯示用的運算式 (使用 ×, ÷)          */         function formatExpressionForDisplay(exp) {             return exp.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−');         }          // 函式：更新 AC/C 按鈕標籤         function updateClearButtonLabel() {             // 如果當前運算式或結果存在，顯示 C，否則顯示 AC             const isClear = currentExpression === '' && lastResult === null;             clearButtonLabel.textContent = isClear ? 'AC' : 'C';         }          // 函式：更新顯示區的內容         function updateDisplay() {             // 1. 更新算式保留區 (列出算式)             // 顯示當前正在輸入的運算式             let displayExp = currentExpression || '0';                          if (isResultDisplayed && lastResult !== null) {                 // 如果是結果顯示狀態，historyDisplay 應該已經被 handleEquals 設定為完整的等式                 // 這裡我們不再更新它，以保留完整的算式                 // 如果 currentExpression 是空的，且沒有上次結果，則顯示 '0'                 if (historyDisplay.textContent === '') {                      historyDisplay.textContent = '0';                 }             } else {                 historyDisplay.textContent = formatExpressionForDisplay(displayExp);             }                          // 2. 更新結果顯示區             let currentNumber = '0';              if (isResultDisplayed && lastResult !== null) {                 // 如果是結果顯示狀態，則顯示最終結果                 currentNumber = lastResult.toString();             } else if (currentExpression !== '') {                 // 從當前表達式中提取正在輸入的數字                 // 找出最後一個操作數                 const parts = currentExpression.split(/([+\-*/])/).filter(p => p.trim() !== '');                                  if (parts.length > 0) {                     const lastPart = parts[parts.length - 1];                                          if (!isNaN(parseFloat(lastPart)) || lastPart === '.') {                         // 如果最後一個部分是數字或單獨的小數點                         currentNumber = lastPart;                     } else if (parts.length > 1 && !isNaN(parseFloat(parts[parts.length - 2]))) {                         // 如果最後一個部分是運算符，則顯示前一個數字                         currentNumber = parts[parts.length - 2];                     }                 }             }                          resultDisplay.textContent = currentNumber;             updateClearButtonLabel();         }          // 函式：清除所有狀態 (AC)         function clearAll() {             currentExpression = '';             lastResult = null;             isResultDisplayed = false;             awaitingSecondOperand = false;             historyDisplay.textContent = '0'; // 確保清空時顯示 0             updateDisplay();             deactivateOperatorButtons();         }          // 函式：清除當前輸入 (C)         function clearCurrentInput() {             if (currentExpression === '' && lastResult === null) {                 clearAll();                 return;             }                          if (isResultDisplayed) {                 // 如果是 C 狀態且剛顯示完結果，則清除所有狀態 (AC 行為)                 clearAll();                 return;             }              // 找到運算式中的最後一個數字             const match = currentExpression.match(/([+\-*/])(\d+\.?\d*)$/);                          if (match) {                 // 如果找到了操作符和數字，移除最後一個數字                 currentExpression = currentExpression.substring(0, currentExpression.length - match[2].length);                 // 如果移除後末尾是運算符，讓它停留在運算符狀態             } else {                  // 如果只是一個數字，清空運算式                 currentExpression = '';             }                          isResultDisplayed = false;             updateDisplay();         }          // 函式：處理數字和小數點輸入         function handleNumber(value) {             deactivateOperatorButtons();              if (isResultDisplayed) {                 // 剛按下等於後輸入數字，開始新的運算式                 currentExpression = '';                 lastResult = null;                 isResultDisplayed = false;                 awaitingSecondOperand = false;             }                          // 如果當前表達式是空，且輸入的不是小數點             if (currentExpression === '' && value !== '.') {                 currentExpression = value;                 updateDisplay();                 return;             }              // 處理小數點開頭或重複             if (value === '.') {                 const lastChar = currentExpression.slice(-1);                 const isOperator = '+-*/'.includes(lastChar);                                  if (isOperator || currentExpression === '') {                      // 運算符後或開頭輸入小數點，自動補零                     currentExpression += '0.';                 } else {                     // 檢查當前數字是否已包含小數點                     const parts = currentExpression.split(/([+\-*/])/).filter(p => p.trim() !== '');                     const currentNumber = parts[parts.length - 1];                     if (!currentNumber.includes('.')) {                          currentExpression += value;                     }                 }             } else {                 // 處理數字輸入                 const lastChar = currentExpression.slice(-1);                 const isOperator = '+-*/'.includes(lastChar);                                  if (!isOperator) {                     const parts = currentExpression.split(/([+\-*/])/).filter(p => p.trim() !== '');                     let currentNumber = parts[parts.length - 1];                                          // 避免在非小數點的情況下有多個前導零                     if (currentNumber === '0' && value !== '0' && !currentNumber.includes('.')) {                         currentExpression = currentExpression.slice(0, -1) + value;                     } else if (currentNumber !== '0' || currentNumber.includes('.')) {                         currentExpression += value;                     }                 } else {                     currentExpression += value;                 }             }                          updateDisplay();         }          // 函式：處理運算符輸入         function handleOperator(value, targetButton) {             deactivateOperatorButtons();                          if (currentExpression === '' && lastResult !== null) {                 // 如果有上次結果，以結果開始新的運算式                 currentExpression = lastResult.toString();                 lastResult = null;                 isResultDisplayed = false;             }              if (currentExpression === '') {                 // 運算式為空時忽略運算符                 return;             }                          // 激活當前運算符按鈕             targetButton.classList.add('op-active');                          // 檢查運算式末尾是否已經是運算符             const lastChar = currentExpression.slice(-1);             if ('+-*/'.includes(lastChar)) {                 // 如果是運算符，則替換它                 currentExpression = currentExpression.slice(0, -1) + value;             } else {                 // 否則，添加新的運算符                 currentExpression += value;             }                          awaitingSecondOperand = true;             updateDisplay();         }          // 函式：處理等於按鈕         function handleEquals() {             deactivateOperatorButtons();              if (currentExpression === '' && lastResult === null) {                 return;             }                          // 確保運算式末尾不是運算符             let expressionToEvaluate = currentExpression;             const lastChar = expressionToEvaluate.slice(-1);             if ('+-*/'.includes(lastChar)) {                 // 移除末尾的運算符後計算                 expressionToEvaluate = expressionToEvaluate.slice(0, -1);             }              try {                 // 為了安全性，我們替換乘法符號 * 和除法符號 /，然後使用 Function 構造函數來計算                 expressionToEvaluate = expressionToEvaluate.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');                                  // 執行計算                 let result = new Function('return ' + expressionToEvaluate)();                                  if (!isFinite(result)) {                     throw new Error("除數為零或結果過大");                 }                                  // 限制小數位數                 if (result.toString().includes('.') && result.toString().split('.')[1].length > 10) {                      result = parseFloat(result.toFixed(10));                 }                  lastResult = result;                                  // 顯示完整的算式 (列出)                 historyDisplay.textContent = formatExpressionForDisplay(expressionToEvaluate) + ' =';                 resultDisplay.textContent = result.toString();                  // 重置狀態，準備下次操作                 currentExpression = ''; // 清除表達式，讓下次數字輸入開始新計算                 isResultDisplayed = true;                 awaitingSecondOperand = false;              } catch (error) {                 console.error("計算錯誤:", error);                 resultDisplay.textContent = "錯誤";                 historyDisplay.textContent = formatExpressionForDisplay(currentExpression);                                  currentExpression = '';                 lastResult = null;                 isResultDisplayed = true;             }             updateClearButtonLabel();         }          // 函式：處理 +/- 按鈕 (正負號)         function handleToggleSign() {             if (isResultDisplayed && lastResult !== null) {                 lastResult *= -1;                 historyDisplay.textContent = lastResult.toString(); // 更新歷史記錄                 updateDisplay();                 return;             }                          let parts = currentExpression.split(/([+\-*/])/).filter(p => p.trim() !== '');                          if (parts.length === 0 || '+-*/'.includes(parts[parts.length - 1])) {                 return;             }              let lastPart = parts[parts.length - 1];             let newExpression = currentExpression.substring(0, currentExpression.length - lastPart.length);              let numericValue = parseFloat(lastPart);             if (!isNaN(numericValue)) {                 let toggledValue = (-numericValue).toString();                 newExpression += toggledValue;                 currentExpression = newExpression;             }                          updateDisplay();         }          // 函式：處理 % 按鈕 (百分比)         function handlePercentage() {             if (isResultDisplayed && lastResult !== null) {                 lastResult /= 100;                 historyDisplay.textContent = lastResult.toString();                 updateDisplay();                 return;             }                          let parts = currentExpression.split(/([+\-*/])/).filter(p => p.trim() !== '');                          if (parts.length === 0 || '+-*/'.includes(parts[parts.length - 1])) {                 return;             }              let lastPart = parts[parts.length - 1];             let newExpression = currentExpression.substring(0, currentExpression.length - lastPart.length);             let numericValue = parseFloat(lastPart);              if (!isNaN(numericValue)) {                 let percentageValue = (numericValue / 100).toString();                 newExpression += percentageValue;                 currentExpression = newExpression;             }                          updateDisplay();         }          // 函式：移除所有運算符按鈕的激活狀態         function deactivateOperatorButtons() {             document.querySelectorAll('[data-type="operator"]').forEach(btn => {                 btn.classList.remove('op-active');             });         }           // --- 事件監聽器設定 ---         buttons.forEach(button => {             button.addEventListener('click', (e) => {                 const targetButton = e.currentTarget;                 const value = targetButton.getAttribute('data-value');                                  switch (value) {                     case 'C':                         clearCurrentInput(); // C 會根據狀態決定是 C 還是 AC                         break;                     case '+/-':                         handleToggleSign();                         break;                     case '%':                         handlePercentage();                         break;                     case '=':                         handleEquals();                         break;                     case '+':                     case '-':                     case '*':                     case '/':                         handleOperator(value, targetButton);                         break;                     case '.':                     case '0':                     case '1':                     case '2':                     case '3':                     case '4':                     case '5':                     case '6':                     case '7':                     case '8':                     case '9':                         handleNumber(value);                         break;                 }             });         });          // 初始化顯示         window.onload = clearAll;     </script> </body> </html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>時尚 iOS 風 計算機</title>
+<style>
+  :root{
+    --bg1: #f7f8fb;
+    --bg2: #eef2ff;
+    --glass: rgba(255,255,255,0.55);
+    --accent: linear-gradient(135deg,#7c5cff 0%,#4dd2ff 100%);
+    --btn-dark: #1f1f23;
+    --muted: #8b90a6;
+    --size: 16px;
+    --radius: 16px;
+    --gap: 12px;
+  }
+  *{box-sizing:border-box;font-family: -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center;padding:28px}
+  .app{
+    width: 380px;
+    max-width:94vw;
+    border-radius:26px;
+    padding:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.35));
+    backdrop-filter: blur(10px) saturate(120%);
+    box-shadow: 0 10px 30px rgba(27,31,41,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  /* header */
+  .header{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+  }
+  .title{
+    font-weight:600;color:var(--btn-dark);
+  }
+  .sub{
+    font-size:12px;color:var(--muted);
+  }
+
+  /* display */
+  .display{
+    border-radius:16px;padding:14px 16px;margin-bottom:18px;
+    background: linear-gradient(180deg, rgba(250,250,255,0.85), rgba(245,247,255,0.65));
+    box-shadow: 0 6px 18px rgba(30,34,40,0.06);
+  }
+  .expression{
+    font-size:14px;color:var(--muted);min-height:20px;word-break:break-all;
+  }
+  .result{
+    font-size:32px;font-weight:700;color:var(--btn-dark);text-align:right;margin-top:6px;
+  }
+
+  /* keypad */
+  .pad{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:12px;
+  }
+  .btn{
+    border:0;padding:16px;border-radius:14px;font-size:18px;font-weight:600;
+    box-shadow: 0 6px 14px rgba(24,28,35,0.06);
+    cursor:pointer;user-select:none;
+    transition: transform .06s ease, box-shadow .06s ease;
+  }
+  .btn:active{transform: translateY(2px); box-shadow: 0 3px 8px rgba(24,28,35,0.06);}
+  .btn--secondary{
+    background: linear-gradient(180deg,#ffffff,#f4f6ff);
+    color: var(--btn-dark);
+  }
+  .btn--operator{
+    background: linear-gradient(180deg,#f5f4ff,#efe8ff);
+    color:#3b2b9a;
+  }
+  .btn--accent{
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 8px 20px rgba(95,72,255,0.18), 0 2px 0 rgba(255,255,255,0.12) inset;
+  }
+  .btn--wide{
+    grid-column: span 2;
+  }
+  .btn--ghost{
+    background: transparent;color:var(--muted);box-shadow:none;border:1px solid rgba(0,0,0,0.03);
+  }
+
+  /* small footer hint */
+  .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+  @media (max-width:420px){
+    .result{font-size:28px}
+    .btn{padding:14px;font-size:16px}
+  }
+</style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="計算機">
+    <div class="header">
+      <div>
+        <div class="title">計算機</div>
+        <div class="sub">時尚 iOS 風 • 保留算式</div>
+      </div>
+      <div class="sub" id="mode">基本</div>
+    </div>
+
+    <div class="display" id="display" aria-live="polite">
+      <div class="expression" id="expression">0</div>
+      <div class="result" id="result">0</div>
+    </div>
+
+    <div class="pad" id="pad">
+      <button class="btn btn--secondary" data-action="ac">AC</button>
+      <button class="btn btn--secondary" data-action="back">⌫</button>
+      <button class="btn btn--secondary" data-value="(">(</button>
+      <button class="btn btn--operator" data-value=")">)</button>
+
+      <button class="btn btn--secondary" data-value="7">7</button>
+      <button class="btn btn--secondary" data-value="8">8</button>
+      <button class="btn btn--secondary" data-value="9">9</button>
+      <button class="btn btn--operator" data-value="÷">÷</button>
+
+      <button class="btn btn--secondary" data-value="4">4</button>
+      <button class="btn btn--secondary" data-value="5">5</button>
+      <button class="btn btn--secondary" data-value="6">6</button>
+      <button class="btn btn--operator" data-value="×">×</button>
+
+      <button class="btn btn--secondary" data-value="1">1</button>
+      <button class="btn btn--secondary" data-value="2">2</button>
+      <button class="btn btn--secondary" data-value="3">3</button>
+      <button class="btn btn--operator" data-value="-">−</button>
+
+      <button class="btn btn--secondary btn--wide" data-value="0">0</button>
+      <button class="btn btn--secondary" data-value=".">.</button>
+      <button class="btn btn--accent" data-value="=">=</button>
+      <button class="btn btn--operator" data-value="+">+</button>
+
+      <button class="btn btn--ghost" data-action="percent">%</button>
+      <button class="btn btn--ghost" data-action="copy">複製</button>
+      <button class="btn btn--ghost" style="grid-column: span 2;" data-action="clearEntry">CE</button>
+    </div>
+
+    <div class="hint">支援鍵盤輸入（數字、+-*/()、Enter 等）</div>
+  </div>
+
+<script>
+(() => {
+  const exprEl = document.getElementById('expression');
+  const resEl = document.getElementById('result');
+  const pad = document.getElementById('pad');
+
+  let expression = '';    // user-visible expression using × ÷ −
+  let lockedResult = null; // if user pressed =, store fixed result
+
+  // helper: sanitize for eval (convert × ÷ − to * / -)
+  function toEvalStr(expr){
+    // replace unicode minus with hyphen
+    let s = expr.replace(/[×]/g,'*').replace(/[÷]/g,'/').replace(/[−]/g,'-');
+    // remove any invalid chars (allow digits, operators, dot, percent, parentheses and spaces)
+    // percent handled separately
+    s = s.replace(/[^0-9\+\-\*\/\.\%\(\)\s]/g,'');
+    // handle percent: convert 'number%' -> '(number/100)'
+    s = s.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
+    return s;
+  }
+
+  function safeEval(expr){
+    try {
+      const ev = toEvalStr(expr);
+      // basic safety: only allow digits, operators, parentheses, dot, slash, star and spaces
+      if (!/^[0-9\+\-\*\/\.\(\)\s\/]*$/.test(ev.replace(/\(\d+(\.\d+)?\/100\)/g,''))){
+        return NaN;
+      }
+      // eslint-disable-next-line no-new-func
+      const fn = new Function('return (' + ev + ')');
+      const val = fn();
+      if (typeof val === 'number' && isFinite(val)) return val;
+      return NaN;
+    } catch (e){
+      return NaN;
+    }
+  }
+
+  function render(){
+    exprEl.textContent = expression || '0';
+    // live compute
+    const val = safeEval(expression);
+    resEl.textContent = isNaN(val) ? '—' : (Math.round((val + Number.EPSILON) * 1e12)/1e12).toString();
+  }
+
+  function pushChar(ch){
+    // if previously locked by = and user presses number/paren/decimal, reset expression
+    if (lockedResult !== null && /[0-9.(]/.test(ch)){
+      expression = '';
+      lockedResult = null;
+    }
+    // prevent multiple leading zeros like "00" in fresh state
+    if (expression === '0' && /[0-9]/.test(ch)) {
+      expression = ch;
+    } else {
+      expression += ch;
+    }
+    render();
+  }
+
+  function doBackspace(){
+    if (lockedResult !== null){
+      lockedResult = null;
+    }
+    expression = expression.slice(0, -1);
+    render();
+  }
+
+  function doAC(){
+    expression = '';
+    lockedResult = null;
+    render();
+  }
+
+  function doCE(){
+    // clear last entry: remove trailing number / parentheses group
+    expression = expression.replace(/[\d\.%]+$|[\(\)][\d\.\+\-\*\/%]*$|[^\d\.\%\)]*$/,'');
+    render();
+  }
+
+  function doPercent(){
+    // append percent sign if it makes sense
+    if (expression === '') return;
+    // if last char is number, add %
+    if (/\d$/.test(expression)) expression += '%';
+    render();
+  }
+
+  function doCopy(){
+    const toCopy = expression || resEl.textContent || '0';
+    navigator.clipboard?.writeText(toCopy).then(()=> {
+      // small UI hint: temporarily change mode text
+      const mode = document.getElementById('mode');
+      const prev = mode.textContent;
+      mode.textContent = '已複製';
+      setTimeout(()=> mode.textContent = prev,800);
+    }).catch(()=> alert('複製失敗'));
+  }
+
+  function doEqual(){
+    const val = safeEval(expression);
+    if (isNaN(val)){
+      resEl.textContent = '錯誤';
+      lockedResult = null;
+    } else {
+      const displayVal = (Math.round((val + Number.EPSILON) * 1e12)/1e12).toString();
+      resEl.textContent = displayVal;
+      expression = displayVal; // let expression become the result for chaining
+      lockedResult = displayVal;
+    }
+    render();
+  }
+
+  pad.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const value = btn.dataset.value;
+    const action = btn.dataset.action;
+    if (action){
+      if (action === 'ac') doAC();
+      else if (action === 'back') doBackspace();
+      else if (action === 'percent') doPercent();
+      else if (action === 'copy') doCopy();
+      else if (action === 'clearEntry') doCE();
+      return;
+    }
+    if (value){
+      if (value === '=') { doEqual(); return; }
+      // allowed inputs: digits, ., operators, parentheses
+      const permitted = /^[0-9\.\+\-×÷\(\)]$/;
+      if (permitted.test(value)) pushChar(value);
+    }
+  });
+
+  // keyboard support
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey) {
+      if (e.key.toLowerCase() === 'c') { doCopy(); e.preventDefault(); }
+      return;
+    }
+    if (e.key === 'Enter' || e.key === '=') { doEqual(); e.preventDefault(); return; }
+    if (e.key === 'Backspace') { doBackspace(); e.preventDefault(); return; }
+    if (e.key === 'Escape') { doAC(); e.preventDefault(); return; }
+    if (e.key === '%') { doPercent(); e.preventDefault(); return; }
+    // map * / - + to × ÷ − + for visual
+    if (/[0-9]/.test(e.key)) { pushChar(e.key); e.preventDefault(); return; }
+    if (e.key === '.') { pushChar('.'); e.preventDefault(); return; }
+    if (e.key === '*') { pushChar('×'); e.preventDefault(); return; }
+    if (e.key === '/') { pushChar('÷'); e.preventDefault(); return; }
+    if (e.key === '-') { pushChar('−'); e.preventDefault(); return; }
+    if (e.key === '+') { pushChar('+'); e.preventDefault(); return; }
+    if (e.key === '(') { pushChar('('); e.preventDefault(); return; }
+    if (e.key === ')') { pushChar(')'); e.preventDefault(); return; }
+  });
+
+  // init
+  doAC();
+})();
+</script>
+</body>
+</html>
