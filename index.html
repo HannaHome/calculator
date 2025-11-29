@@ -18,26 +18,36 @@
         overflow: hidden;
     }
 
-    /* 顯示區 */
-    #display {
-        font-size: 4.8rem;
-        text-align: right;
-        padding: 30px 24px;
+    /* 顯示區：上面算式、下面結果 */
+    #display-wrapper {
+        padding: 30px 24px 10px;
         flex: 1;
         display: flex;
-        align-items: flex-end;
+        flex-direction: column;
         justify-content: flex-end;
+        align-items: flex-end;
     }
 
-    /* 整個按鈕區 */
+    #formula {
+        font-size: 1.4rem;
+        opacity: 0.6;
+        min-height: 1.6rem;
+    }
+
+    #display {
+        font-size: 4.8rem;
+        line-height: 1.1;
+        margin-top: 6px;
+    }
+
+    /* 按鈕區 */
     #buttons {
-        padding: 0 10px 25px 10px;
+        padding: 0 10px 30px;
         display: grid;
         gap: var(--gap);
         grid-template-columns: repeat(4, 1fr);
     }
 
-    /* iOS 按鈕風格 */
     .btn {
         border-radius: 50%;
         border: none;
@@ -54,42 +64,39 @@
         user-select: none;
     }
 
-    /* iOS 按壓動畫 */
     .btn:active {
         transform: scale(0.92);
     }
 
-    /* iOS 橘色按鈕 */
     .op {
         background: #ff9f0a;
     }
 
-    /* iOS 淺灰功能鍵 */
     .func {
         background: #a5a5a5;
         color: black;
     }
 
-    /* 自動偵測螢幕尺寸：iPhone / Plus / iPad */
+    /* ==== 尺寸重新加大 ==== */
     :root {
-        --size: 72px;    /* default iPhone */
-        --gap: 12px;
-        --font: 2rem;
+        --size: 82px;   /* iPhone 放大版 */
+        --gap: 14px;
+        --font: 2.4rem;
     }
 
     @media (min-width: 400px) {
         :root {
-            --size: 82px; /* iPhone Plus */
-            --gap: 14px;
-            --font: 2.2rem;
+            --size: 94px; /* iPhone Plus 放大 */
+            --gap: 16px;
+            --font: 2.6rem;
         }
     }
 
     @media (min-width: 700px) {
         :root {
-            --size: 110px; /* iPad */
-            --gap: 18px;
-            --font: 3rem;
+            --size: 130px; /* iPad 放大 */
+            --gap: 22px;
+            --font: 3.4rem;
         }
     }
 </style>
@@ -97,7 +104,10 @@
 
 <body>
 
-<div id="display">0</div>
+<div id="display-wrapper">
+    <div id="formula"></div>
+    <div id="display">0</div>
+</div>
 
 <div id="buttons">
     <button class="btn func" data-key="del">⌫</button>
@@ -128,49 +138,66 @@
 
 <script>
 const display = document.getElementById("display");
+const formula = document.getElementById("formula");
+
 let buffer = "0";
 let operator = null;
 let previous = null;
+let chainFormula = ""; // 用來保留算式
 
 function updateDisplay() {
     display.textContent = buffer;
+    formula.textContent = chainFormula;
 }
 
 document.querySelectorAll(".btn").forEach(btn => {
     btn.addEventListener("click", () => {
         const key = btn.dataset.key;
 
-        if (!isNaN(key)) {                    // 數字
+        if (!isNaN(key)) {
             buffer = buffer === "0" ? key : buffer + key;
-        } else if (key === ".") {
+        } 
+        else if (key === ".") {
             if (!buffer.includes(".")) buffer += ".";
-        } else if (key === "ac") {
+        }
+        else if (key === "ac") {
             buffer = "0";
             operator = null;
             previous = null;
-        } else if (key === "del") {
+            chainFormula = "";
+        }
+        else if (key === "del") {
             buffer = buffer.length > 1 ? buffer.slice(0, -1) : "0";
-        } else if (["+", "−", "×", "÷"].includes(key)) {
+        }
+        else if (["+", "−", "×", "÷"].includes(key)) {
             operator = key;
             previous = buffer;
+            chainFormula += `${buffer} ${key} `;
             buffer = "0";
-        } else if (key === "=") {
+        }
+        else if (key === "=") {
             if (operator && previous !== null) {
                 const a = parseFloat(previous);
                 const b = parseFloat(buffer);
+                let result = a;
 
                 switch (operator) {
-                    case "+": buffer = (a + b).toString(); break;
-                    case "−": buffer = (a - b).toString(); break;
-                    case "×": buffer = (a * b).toString(); break;
-                    case "÷": buffer = b === 0 ? "Error" : (a / b).toString();
+                    case "+": result = a + b; break;
+                    case "−": result = a - b; break;
+                    case "×": result = a * b; break;
+                    case "÷": result = b === 0 ? "Error" : a / b; break;
                 }
+
+                chainFormula += buffer + " =";
+                buffer = result.toString();
                 operator = null;
                 previous = null;
             }
-        } else if (key === "%") {
+        }
+        else if (key === "%") {
             buffer = (parseFloat(buffer) / 100).toString();
-        } else if (key === "+/-") {
+        }
+        else if (key === "+/-") {
             buffer = (parseFloat(buffer) * -1).toString();
         }
 
