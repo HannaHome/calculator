@@ -1,231 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- PWA 基本 -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-
-<!-- iOS / iPadOS 專用 -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Calculator">
-
-<!-- 防止 iPad 出現網址列、支援舊版 iPad -->
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0,
-      maximum-scale=1.0, user-scalable=no,
-      viewport-fit=cover, minimal-ui">
-
-<!-- iOS 啟動畫面（自動裁）-->
-<link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="apple-touch-startup-image" href="icons/splash-2048x2732.png">
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no">
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>iOS Style Calculator</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <style>
-    body {
-        background: black;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
+    body{
+        margin:0;
+        background:#000;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        height:100vh;
+        overflow:hidden;
+        touch-action:manipulation;
+        font-family:-apple-system, BlinkMacSystemFont, "Helvetica Neue";
     }
 
-    /* 顯示區：上面算式、下面結果 */
-    #display-wrapper {
-        padding: 30px 24px 10px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        align-items: flex-end;
+    .calculator{
+        width: min(95vw, 500px);
+        height: min(90vh, 800px);
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
     }
 
-    #formula {
-        font-size: 1.4rem;
-        opacity: 0.6;
-        min-height: 1.6rem;
+    .display{
+        color:white;
+        text-align:right;
+        padding:20px;
+        font-size:3rem;
+        height:120px;
+        overflow:hidden;
+        white-space:nowrap;
     }
 
-    #display {
-        font-size: 4.8rem;
-        line-height: 1.1;
-        margin-top: 6px;
+    .formula{
+        color:#888;
+        font-size:1.2rem;
+        margin-bottom:10px;
     }
 
-    /* 按鈕區 */
-    #buttons {
-        padding: 0 10px 30px;
-        display: grid;
-        gap: var(--gap);
-        grid-template-columns: repeat(4, 1fr);
+    .buttons{
+        display:grid;
+        gap:10px;
+        width:100%;
+        height:100%;
     }
 
-    .btn {
-        border-radius: 50%;
-        border: none;
-        font-size: var(--font);
-        height: var(--size);
-        width: var(--size);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #333;
-        color: white;
-        transition: transform 0.08s;
-        -webkit-tap-highlight-color: transparent;
-        user-select: none;
-    }
-
-    .btn:active {
-        transform: scale(0.92);
-    }
-
-    .op {
-        background: #ff9f0a;
-    }
-
-    .func {
-        background: #a5a5a5;
-        color: black;
-    }
-
-    /* ==== 尺寸重新加大 ==== */
-    :root {
-        --size: 82px;   /* iPhone 放大版 */
-        --gap: 14px;
-        --font: 2.4rem;
-    }
-
-    @media (min-width: 400px) {
-        :root {
-            --size: 94px; /* iPhone Plus 放大 */
-            --gap: 16px;
-            --font: 2.6rem;
+    /* 自動依照螢幕重新排列 */
+    @media (orientation:portrait){
+        .buttons{
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
         }
     }
 
-    @media (min-width: 700px) {
-        :root {
-            --size: 130px; /* iPad 放大 */
-            --gap: 22px;
-            --font: 3.4rem;
+    @media (orientation:landscape){
+        .calculator{
+            width: min(90vw, 650px);
+            height: min(95vh, 450px);
+        }
+        .buttons{
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(4, 1fr);
         }
     }
+
+    button{
+        border:none;
+        border-radius:18px;
+        font-size:2rem;
+        color:white;
+        background:#333;
+        transition:transform 0.05s;
+        touch-action:manipulation;
+    }
+
+    button:active{
+        transform:scale(0.92);
+    }
+
+    .orange{ background:#ff9f0a; }
+    .gray{ background:#a5a5a5; color:black; }
 </style>
 </head>
 
 <body>
+
+<div class="calculator">
+    <div class="display">
+        <div class="formula" id="formula"></div>
+        <div id="result">0</div>
+    </div>
+
+    <div class="buttons">
+        <button class="gray">AC</button>
+        <button class="gray">+/-</button>
+        <button class="gray">%</button>
+        <button class="orange">÷</button>
+
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button class="orange">×</button>
+
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button class="orange">−</button>
+
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button class="orange">+</button>
+
+        <button style="grid-column: span 2;">0</button>
+        <button>.</button>
+        <button class="orange">=</button>
+    </div>
+</div>
+
 <script>
+const result = document.getElementById("result");
+const formula = document.getElementById("formula");
+
+let current = "0";
+let expr = "";
+
+document.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+        const v = btn.innerText;
+        speak(v); // 🟢 點按時說出數字
+
+        if(!isNaN(v)){ // number
+            current = current==="0" ? v : current+v;
+        }else if(["+","−","×","÷"].includes(v)){
+            expr += current + " " + v + " ";
+            current = "0";
+        }else if(v==="AC"){
+            current="0"; expr="";
+        }else if(v==="."){
+            if(!current.includes(".")) current += ".";
+        }else if(v==="+/-"){
+            current = (parseFloat(current)*(-1)).toString();
+        }else if(v==="%"){
+            current = (parseFloat(current)/100).toString();
+        }else if(v==="="){
+            expr += current;
+            formula.innerText = expr;
+            current = eval(expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")).toString();
+            expr = "";
+        }
+
+        result.innerText = current;
+        if(expr==="") formula.innerText = "";
+    });
+});
+
+
+// 🔊 語音功能（支援 iPhone / iPad）
+function speak(text){
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "en-US";
+    speechSynthesis.speak(msg);
+}
+</script>
+
+<script>
+// PWA 安裝
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
-</script>
-<div id="display-wrapper">
-    <div id="formula"></div>
-    <div id="display">0</div>
-</div>
-
-<div id="buttons">
-    <button class="btn func" data-key="del">⌫</button>
-    <button class="btn func" data-key="ac">AC</button>
-    <button class="btn func" data-key="%">%</button>
-    <button class="btn op"   data-key="÷">÷</button>
-
-    <button class="btn" data-key="7">7</button>
-    <button class="btn" data-key="8">8</button>
-    <button class="btn" data-key="9">9</button>
-    <button class="btn op" data-key="×">×</button>
-
-    <button class="btn" data-key="4">4</button>
-    <button class="btn" data-key="5">5</button>
-    <button class="btn" data-key="6">6</button>
-    <button class="btn op" data-key="−">−</button>
-
-    <button class="btn" data-key="1">1</button>
-    <button class="btn" data-key="2">2</button>
-    <button class="btn" data-key="3">3</button>
-    <button class="btn op" data-key="+">+</button>
-
-    <button class="btn func" data-key="+/-">+/-</button>
-    <button class="btn" data-key="0">0</button>
-    <button class="btn" data-key=".">.</button>
-    <button class="btn op" data-key="=">=</button>
-</div>
-
-<script>
-const display = document.getElementById("display");
-const formula = document.getElementById("formula");
-
-let buffer = "0";
-let operator = null;
-let previous = null;
-let chainFormula = ""; // 用來保留算式
-
-function updateDisplay() {
-    display.textContent = buffer;
-    formula.textContent = chainFormula;
-}
-
-document.querySelectorAll(".btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        const key = btn.dataset.key;
-
-        if (!isNaN(key)) {
-            buffer = buffer === "0" ? key : buffer + key;
-        } 
-        else if (key === ".") {
-            if (!buffer.includes(".")) buffer += ".";
-        }
-        else if (key === "ac") {
-            buffer = "0";
-            operator = null;
-            previous = null;
-            chainFormula = "";
-        }
-        else if (key === "del") {
-            buffer = buffer.length > 1 ? buffer.slice(0, -1) : "0";
-        }
-        else if (["+", "−", "×", "÷"].includes(key)) {
-            operator = key;
-            previous = buffer;
-            chainFormula += `${buffer} ${key} `;
-            buffer = "0";
-        }
-        else if (key === "=") {
-            if (operator && previous !== null) {
-                const a = parseFloat(previous);
-                const b = parseFloat(buffer);
-                let result = a;
-
-                switch (operator) {
-                    case "+": result = a + b; break;
-                    case "−": result = a - b; break;
-                    case "×": result = a * b; break;
-                    case "÷": result = b === 0 ? "Error" : a / b; break;
-                }
-
-                chainFormula += buffer + " =";
-                buffer = result.toString();
-                operator = null;
-                previous = null;
-            }
-        }
-        else if (key === "%") {
-            buffer = (parseFloat(buffer) / 100).toString();
-        }
-        else if (key === "+/-") {
-            buffer = (parseFloat(buffer) * -1).toString();
-        }
-
-        updateDisplay();
-    });
-});
 </script>
 
 </body>
