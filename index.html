@@ -41,13 +41,14 @@
         font-size:3rem;
         height:120px;
         overflow:hidden;
-        white-space:nowrap;
+        white-space:pre-wrap;
     }
 
     .formula{
         color:#888;
         font-size:1.2rem;
         margin-bottom:10px;
+        white-space:pre-wrap;
     }
 
     .buttons{
@@ -138,12 +139,13 @@ const formula = document.getElementById("formula");
 
 let current = "0";
 let expr = "";
+let history = []; // 用來儲存最近的算式紀錄（最多 2 筆）
 
 document.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click", ()=>{
         const v = btn.innerText;
 
-        speak(v); // 🟢 中文語音
+        speak(v); // 中文語音
 
         if(!isNaN(v)){ // number
             current = current==="0" ? v : current+v;
@@ -152,6 +154,7 @@ document.querySelectorAll("button").forEach(btn=>{
             current = "0";
         }else if(v==="AC"){
             current="0"; expr="";
+            history = [];
         }else if(v==="."){
             if(!current.includes(".")) current += ".";
         }else if(v==="+/-"){
@@ -160,32 +163,42 @@ document.querySelectorAll("button").forEach(btn=>{
             current = (parseFloat(current)/100).toString();
         }else if(v==="="){
             expr += current;
-            formula.innerText = expr;
-            current = eval(expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")).toString();
+            
+            // 計算結果
+            try{
+                current = eval(expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")).toString();
+            }catch(e){
+                current = "Error";
+            }
+
+            // 加入 history，最多保留 2 筆
+            history.push(expr + " = " + current);
+            if(history.length > 2) history.shift();
+
+            // 顯示歷史算式
+            formula.innerText = history.join("\n");
+
             expr = "";
         }
 
         result.innerText = current;
-        if(expr==="") formula.innerText = "";
+
+        // 顯示未完成的運算式
+        if(v !== "=" && expr !== "") formula.innerText = history.concat(expr).join("\n");
     });
 });
 
-
-// 🔊 中文語音（台灣國語）
+// 中文語音（台灣國語）
 function speak(text){
     const msg = new SpeechSynthesisUtterance(text);
-
-    msg.lang = "zh-TW";   // 中文台灣
-    msg.rate = 1;         // 速度
-    msg.pitch = 1;        // 音高
-    msg.volume = 1;       // 音量
-
+    msg.lang = "zh-TW";
+    msg.rate = 1;
+    msg.pitch = 1;
+    msg.volume = 1;
     speechSynthesis.cancel(); // 避免堆疊
     speechSynthesis.speak(msg);
 }
-</script>
 
-<script>
 // PWA 安裝
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
