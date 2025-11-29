@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
@@ -57,7 +57,7 @@
         height:100%;
     }
 
-    /* 自動依照螢幕重新排列 */
+    /* 直立模式（iPhone / iPad 直放） */
     @media (orientation:portrait){
         .buttons{
             grid-template-columns: repeat(4, 1fr);
@@ -65,6 +65,7 @@
         }
     }
 
+    /* 橫放模式（iPad） */
     @media (orientation:landscape){
         .calculator{
             width: min(90vw, 650px);
@@ -86,6 +87,7 @@
         touch-action:manipulation;
     }
 
+    /* iOS 按壓動畫 */
     button:active{
         transform:scale(0.92);
     }
@@ -140,7 +142,8 @@ let expr = "";
 document.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click", ()=>{
         const v = btn.innerText;
-        speak(v); // 🟢 點按時說出數字
+
+        speak(v); // 🟢 中文語音
 
         if(!isNaN(v)){ // number
             current = current==="0" ? v : current+v;
@@ -168,10 +171,16 @@ document.querySelectorAll("button").forEach(btn=>{
 });
 
 
-// 🔊 語音功能（支援 iPhone / iPad）
+// 🔊 中文語音（台灣國語）
 function speak(text){
     const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "en-US";
+
+    msg.lang = "zh-TW";   // 中文台灣
+    msg.rate = 1;         // 速度
+    msg.pitch = 1;        // 音高
+    msg.volume = 1;       // 音量
+
+    speechSynthesis.cancel(); // 避免堆疊
     speechSynthesis.speak(msg);
 }
 </script>
