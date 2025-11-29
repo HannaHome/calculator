@@ -3,303 +3,192 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>時尚 iOS 風 計算機</title>
+<title>iOS 風格計算機</title>
+
 <style>
   :root{
-    --bg1: #f7f8fb;
-    --bg2: #eef2ff;
-    --glass: rgba(255,255,255,0.55);
-    --accent: linear-gradient(135deg,#7c5cff 0%,#4dd2ff 100%);
-    --btn-dark: #1f1f23;
-    --muted: #8b90a6;
-    --size: 16px;
-    --radius: 16px;
-    --gap: 12px;
+    --bg1:#f7f8fb;
+    --bg2:#eef2ff;
+    --accent: linear-gradient(135deg,#7c5cff,#4dd2ff);
+    --radius:20px;
+    --font-main:-apple-system,"SF Pro Text","Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
   }
-  *{box-sizing:border-box;font-family: -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif}
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));display:flex;align-items:center;justify-content:center;padding:28px}
+  *{box-sizing:border-box;font-family:var(--font-main);}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    display:flex;justify-content:center;align-items:center;
+    height:100vh;padding:20px;
+  }
+
   .app{
-    width: 380px;
-    max-width:94vw;
-    border-radius:26px;
-    padding:18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.35));
-    backdrop-filter: blur(10px) saturate(120%);
-    box-shadow: 0 10px 30px rgba(27,31,41,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    width:380px;max-width:95vw;
+    padding:20px;border-radius:30px;
+    background:rgba(255,255,255,0.45);
+    backdrop-filter:blur(18px) saturate(140%);
+    box-shadow:0 8px 25px rgba(0,0,0,0.12);
   }
 
-  /* header */
-  .header{
-    display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
-  }
-  .title{
-    font-weight:600;color:var(--btn-dark);
-  }
-  .sub{
-    font-size:12px;color:var(--muted);
-  }
+  /* ============================================
+     三種 iOS 尺寸模式：small / medium / large
+     ============================================ */
 
-  /* display */
+  body.size-small { --btn-size:56px; --btn-font:20px; --gap:10px; --panel-pad:14px; }
+  body.size-medium{ --btn-size:66px; --btn-font:23px; --gap:12px; --panel-pad:16px; }
+  body.size-large { --btn-size:78px; --btn-font:28px; --gap:14px; --panel-pad:22px; }
+
+  /* 顯示區 */
   .display{
-    border-radius:16px;padding:14px 16px;margin-bottom:18px;
-    background: linear-gradient(180deg, rgba(250,250,255,0.85), rgba(245,247,255,0.65));
-    box-shadow: 0 6px 18px rgba(30,34,40,0.06);
+    padding:var(--panel-pad);
+    background:rgba(255,255,255,0.7);
+    border-radius:18px;
+    box-shadow:0 6px 18px rgba(30,34,40,0.08);
+    margin-bottom:20px;
   }
   .expression{
-    font-size:14px;color:var(--muted);min-height:20px;word-break:break-all;
+    font-size:16px;color:#7f86a6;min-height:22px;
   }
   .result{
-    font-size:32px;font-weight:700;color:var(--btn-dark);text-align:right;margin-top:6px;
+    font-size:42px;font-weight:700;text-align:right;margin-top:6px;
   }
 
-  /* keypad */
+  /* 按鍵 */
   .pad{
     display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:12px;
+    grid-template-columns:repeat(4,1fr);
+    gap:var(--gap);
   }
   .btn{
-    border:0;padding:16px;border-radius:14px;font-size:18px;font-weight:600;
-    box-shadow: 0 6px 14px rgba(24,28,35,0.06);
-    cursor:pointer;user-select:none;
-    transition: transform .06s ease, box-shadow .06s ease;
+    width:100%;height:var(--btn-size);
+    border-radius:18px;font-size:var(--btn-font);
+    border:0;background:linear-gradient(180deg,#fff,#f4f5ff);
+    box-shadow:0 4px 14px rgba(0,0,0,0.06);
+    display:flex;justify-content:center;align-items:center;
+    user-select:none;cursor:pointer;font-weight:600;
+    transition:transform .06s ease,box-shadow .06s ease;
   }
-  .btn:active{transform: translateY(2px); box-shadow: 0 3px 8px rgba(24,28,35,0.06);}
-  .btn--secondary{
-    background: linear-gradient(180deg,#ffffff,#f4f6ff);
-    color: var(--btn-dark);
-  }
+  .btn:active{transform:translateY(2px);}
+
   .btn--operator{
-    background: linear-gradient(180deg,#f5f4ff,#efe8ff);
-    color:#3b2b9a;
+    background:linear-gradient(180deg,#f5f1ff,#ece6ff);
+    color:#4c3bb2;
   }
   .btn--accent{
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 8px 20px rgba(95,72,255,0.18), 0 2px 0 rgba(255,255,255,0.12) inset;
+    background:var(--accent);
+    color:#fff;
+    box-shadow:0 6px 18px rgba(100,70,255,0.22);
   }
   .btn--wide{
-    grid-column: span 2;
+    grid-column:span 2;
   }
   .btn--ghost{
-    background: transparent;color:var(--muted);box-shadow:none;border:1px solid rgba(0,0,0,0.03);
-  }
-
-  /* small footer hint */
-  .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
-  @media (max-width:420px){
-    .result{font-size:28px}
-    .btn{padding:14px;font-size:16px}
+    background:transparent;
+    border:1px solid rgba(0,0,0,0.08);
+    color:#7e8499;
   }
 </style>
 </head>
-<body>
-  <div class="app" role="application" aria-label="計算機">
-    <div class="header">
-      <div>
-        <div class="title">計算機</div>
-        <div class="sub">時尚 iOS 風 • 保留算式</div>
-      </div>
-      <div class="sub" id="mode">基本</div>
-    </div>
 
-    <div class="display" id="display" aria-live="polite">
-      <div class="expression" id="expression">0</div>
-      <div class="result" id="result">0</div>
-    </div>
+<body class="size-medium">
+<div class="app">
 
-    <div class="pad" id="pad">
-      <button class="btn btn--secondary" data-action="ac">AC</button>
-      <button class="btn btn--secondary" data-action="back">⌫</button>
-      <button class="btn btn--secondary" data-value="(">(</button>
-      <button class="btn btn--operator" data-value=")">)</button>
-
-      <button class="btn btn--secondary" data-value="7">7</button>
-      <button class="btn btn--secondary" data-value="8">8</button>
-      <button class="btn btn--secondary" data-value="9">9</button>
-      <button class="btn btn--operator" data-value="÷">÷</button>
-
-      <button class="btn btn--secondary" data-value="4">4</button>
-      <button class="btn btn--secondary" data-value="5">5</button>
-      <button class="btn btn--secondary" data-value="6">6</button>
-      <button class="btn btn--operator" data-value="×">×</button>
-
-      <button class="btn btn--secondary" data-value="1">1</button>
-      <button class="btn btn--secondary" data-value="2">2</button>
-      <button class="btn btn--secondary" data-value="3">3</button>
-      <button class="btn btn--operator" data-value="-">−</button>
-
-      <button class="btn btn--secondary btn--wide" data-value="0">0</button>
-      <button class="btn btn--secondary" data-value=".">.</button>
-      <button class="btn btn--accent" data-value="=">=</button>
-      <button class="btn btn--operator" data-value="+">+</button>
-
-      <button class="btn btn--ghost" data-action="percent">%</button>
-      <button class="btn btn--ghost" data-action="copy">複製</button>
-      <button class="btn btn--ghost" style="grid-column: span 2;" data-action="clearEntry">CE</button>
-    </div>
-
-    <div class="hint">支援鍵盤輸入（數字、+-*/()、Enter 等）</div>
+  <div class="display">
+    <div id="expression" class="expression">0</div>
+    <div id="result" class="result">0</div>
   </div>
+
+  <div class="pad" id="pad">
+    <button class="btn btn--ghost" data-action="ac">AC</button>
+    <button class="btn btn--ghost" data-action="back">⌫</button>
+    <button class="btn btn--ghost" data-value="(">(</button>
+    <button class="btn btn--ghost" data-value=")">)</button>
+
+    <button class="btn" data-value="7">7</button>
+    <button class="btn" data-value="8">8</button>
+    <button class="btn" data-value="9">9</button>
+    <button class="btn btn--operator" data-value="÷">÷</button>
+
+    <button class="btn" data-value="4">4</button>
+    <button class="btn" data-value="5">5</button>
+    <button class="btn" data-value="6">6</button>
+    <button class="btn btn--operator" data-value="×">×</button>
+
+    <button class="btn" data-value="1">1</button>
+    <button class="btn" data-value="2">2</button>
+    <button class="btn" data-value="3">3</button>
+    <button class="btn btn--operator" data-value="-">−</button>
+
+    <button class="btn btn--wide" data-value="0">0</button>
+    <button class="btn" data-value=".">.</button>
+    <button class="btn btn--accent" data-value="=">=</button>
+    <button class="btn btn--operator" data-value="+">+</button>
+  </div>
+</div>
 
 <script>
 (() => {
-  const exprEl = document.getElementById('expression');
-  const resEl = document.getElementById('result');
-  const pad = document.getElementById('pad');
+  const exprEl = document.getElementById("expression");
+  const resEl = document.getElementById("result");
+  const pad = document.getElementById("pad");
 
-  let expression = '';    // user-visible expression using × ÷ −
-  let lockedResult = null; // if user pressed =, store fixed result
+  let expression = "";
+  let locked = null;
 
-  // helper: sanitize for eval (convert × ÷ − to * / -)
-  function toEvalStr(expr){
-    // replace unicode minus with hyphen
-    let s = expr.replace(/[×]/g,'*').replace(/[÷]/g,'/').replace(/[−]/g,'-');
-    // remove any invalid chars (allow digits, operators, dot, percent, parentheses and spaces)
-    // percent handled separately
-    s = s.replace(/[^0-9\+\-\*\/\.\%\(\)\s]/g,'');
-    // handle percent: convert 'number%' -> '(number/100)'
-    s = s.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
-    return s;
+  function toEvalStr(s){
+    return s.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-')
+            .replace(/(\d+)%/g,'($1/100)');
   }
 
   function safeEval(expr){
-    try {
-      const ev = toEvalStr(expr);
-      // basic safety: only allow digits, operators, parentheses, dot, slash, star and spaces
-      if (!/^[0-9\+\-\*\/\.\(\)\s\/]*$/.test(ev.replace(/\(\d+(\.\d+)?\/100\)/g,''))){
-        return NaN;
-      }
-      // eslint-disable-next-line no-new-func
-      const fn = new Function('return (' + ev + ')');
-      const val = fn();
-      if (typeof val === 'number' && isFinite(val)) return val;
-      return NaN;
-    } catch (e){
-      return NaN;
-    }
+    try{
+      const v = Function("return " + toEvalStr(expr))();
+      return Number.isFinite(v) ? v : NaN;
+    }catch(e){return NaN;}
   }
 
   function render(){
-    exprEl.textContent = expression || '0';
-    // live compute
-    const val = safeEval(expression);
-    resEl.textContent = isNaN(val) ? '—' : (Math.round((val + Number.EPSILON) * 1e12)/1e12).toString();
+    exprEl.textContent = expression || "0";
+    const v = safeEval(expression);
+    resEl.textContent = isNaN(v) ? "—" : v.toString();
   }
 
-  function pushChar(ch){
-    // if previously locked by = and user presses number/paren/decimal, reset expression
-    if (lockedResult !== null && /[0-9.(]/.test(ch)){
-      expression = '';
-      lockedResult = null;
-    }
-    // prevent multiple leading zeros like "00" in fresh state
-    if (expression === '0' && /[0-9]/.test(ch)) {
-      expression = ch;
-    } else {
-      expression += ch;
-    }
+  function push(ch){
+    if(locked && /[0-9.(]/.test(ch)){ expression=""; locked=null; }
+    expression += ch;
     render();
-  }
-
-  function doBackspace(){
-    if (lockedResult !== null){
-      lockedResult = null;
-    }
-    expression = expression.slice(0, -1);
-    render();
-  }
-
-  function doAC(){
-    expression = '';
-    lockedResult = null;
-    render();
-  }
-
-  function doCE(){
-    // clear last entry: remove trailing number / parentheses group
-    expression = expression.replace(/[\d\.%]+$|[\(\)][\d\.\+\-\*\/%]*$|[^\d\.\%\)]*$/,'');
-    render();
-  }
-
-  function doPercent(){
-    // append percent sign if it makes sense
-    if (expression === '') return;
-    // if last char is number, add %
-    if (/\d$/.test(expression)) expression += '%';
-    render();
-  }
-
-  function doCopy(){
-    const toCopy = expression || resEl.textContent || '0';
-    navigator.clipboard?.writeText(toCopy).then(()=> {
-      // small UI hint: temporarily change mode text
-      const mode = document.getElementById('mode');
-      const prev = mode.textContent;
-      mode.textContent = '已複製';
-      setTimeout(()=> mode.textContent = prev,800);
-    }).catch(()=> alert('複製失敗'));
   }
 
   function doEqual(){
-    const val = safeEval(expression);
-    if (isNaN(val)){
-      resEl.textContent = '錯誤';
-      lockedResult = null;
-    } else {
-      const displayVal = (Math.round((val + Number.EPSILON) * 1e12)/1e12).toString();
-      resEl.textContent = displayVal;
-      expression = displayVal; // let expression become the result for chaining
-      lockedResult = displayVal;
+    const v = safeEval(expression);
+    if(!isNaN(v)){
+      expression = v.toString();
+      locked = true;
     }
     render();
   }
 
-  pad.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const value = btn.dataset.value;
-    const action = btn.dataset.action;
-    if (action){
-      if (action === 'ac') doAC();
-      else if (action === 'back') doBackspace();
-      else if (action === 'percent') doPercent();
-      else if (action === 'copy') doCopy();
-      else if (action === 'clearEntry') doCE();
-      return;
+  pad.addEventListener("click", e=>{
+    const b = e.target.closest("button");
+    if(!b) return;
+
+    if(b.dataset.value){
+      const v = b.dataset.value;
+      if(v === "=") return doEqual();
+      push(v);
     }
-    if (value){
-      if (value === '=') { doEqual(); return; }
-      // allowed inputs: digits, ., operators, parentheses
-      const permitted = /^[0-9\.\+\-×÷\(\)]$/;
-      if (permitted.test(value)) pushChar(value);
+
+    if(b.dataset.action === "ac"){
+      expression=""; locked=null; render();
+    }
+    if(b.dataset.action === "back"){
+      expression = expression.slice(0,-1);
+      render();
     }
   });
 
-  // keyboard support
-  window.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey) {
-      if (e.key.toLowerCase() === 'c') { doCopy(); e.preventDefault(); }
-      return;
-    }
-    if (e.key === 'Enter' || e.key === '=') { doEqual(); e.preventDefault(); return; }
-    if (e.key === 'Backspace') { doBackspace(); e.preventDefault(); return; }
-    if (e.key === 'Escape') { doAC(); e.preventDefault(); return; }
-    if (e.key === '%') { doPercent(); e.preventDefault(); return; }
-    // map * / - + to × ÷ − + for visual
-    if (/[0-9]/.test(e.key)) { pushChar(e.key); e.preventDefault(); return; }
-    if (e.key === '.') { pushChar('.'); e.preventDefault(); return; }
-    if (e.key === '*') { pushChar('×'); e.preventDefault(); return; }
-    if (e.key === '/') { pushChar('÷'); e.preventDefault(); return; }
-    if (e.key === '-') { pushChar('−'); e.preventDefault(); return; }
-    if (e.key === '+') { pushChar('+'); e.preventDefault(); return; }
-    if (e.key === '(') { pushChar('('); e.preventDefault(); return; }
-    if (e.key === ')') { pushChar(')'); e.preventDefault(); return; }
-  });
-
-  // init
-  doAC();
+  render();
 })();
 </script>
+
 </body>
 </html>
