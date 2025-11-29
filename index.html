@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- PWA 基本 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<!-- iOS / iPadOS 專用 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calculator">
+
+<!-- 防止 iPad 出現網址列、支援舊版 iPad -->
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+      maximum-scale=1.0, user-scalable=no,
+      viewport-fit=cover, minimal-ui">
+
+<!-- iOS 啟動畫面（自動裁）-->
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-startup-image" href="icons/splash-2048x2732.png">
 <meta charset="UTF-8">
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -103,7 +121,11 @@
 </head>
 
 <body>
-
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+}
+</script>
 <div id="display-wrapper">
     <div id="formula"></div>
     <div id="display">0</div>
