@@ -67,7 +67,6 @@
         height:100%;
     }
 
-    /* 直立模式（iPhone / iPad 直放） */
     @media (orientation:portrait){
         .buttons{
             grid-template-columns: repeat(4, 1fr);
@@ -75,7 +74,6 @@
         }
     }
 
-    /* 橫放模式（iPad） */
     @media (orientation:landscape){
         .calculator{
             width: min(90vw, 650px);
@@ -97,7 +95,6 @@
         touch-action:manipulation;
     }
 
-    /* iOS 按壓動畫 */
     button:active{
         transform:scale(0.92);
     }
@@ -148,65 +145,116 @@ const currentNumber = document.getElementById("currentNumber");
 
 let current = "0";
 let expr = "";
-let history = []; // 儲存最近算式（最多 2 筆）
+let history = [];
+const operatorMap = {"+":"加","−":"減","×":"乘","÷":"除"};
+
+// 數字轉中文
+function numberToChinese(numStr){
+    const digit = ['零','一','二','三','四','五','六','七','八','九'];
+    const unit = ['','十','百','千','萬','十萬','百萬','千萬','億'];
+    if(numStr==="0") return "零";
+    if(isNaN(numStr)) return numStr;
+
+    let [intPart, decPart] = numStr.split(".");
+    let result = "";
+    let len = intPart.length;
+    for(let i=0;i<len;i++){
+        let n = parseInt(intPart[i]);
+        let u = unit[len-i-1];
+        if(n!==0){
+            result += digit[n]+u;
+        }else{
+            if(!result.endsWith("零") && i!==len-1){
+                result += "零";
+            }
+        }
+    }
+    result = result.replace(/零+$/,"");
+    result = result.replace(/^一十/,"十");
+
+    if(decPart){
+        result += "點";
+        for(let ch of decPart){
+            result += digit[parseInt(ch)];
+        }
+    }
+    return result;
+}
+
+// 算式轉中文
+function exprToChinese(expression){
+    return expression.replace(/\d+(\.\d+)?/g, num=>numberToChinese(num))
+                     .replace(/[+\-×÷]/g, op=>operatorMap[op]);
+}
 
 document.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click", ()=>{
         const v = btn.innerText;
 
-        speak(v); // 中文語音
-
-        if(!isNaN(v)){ // 數字
-            current = current==="0" ? v : current+v;
-        }else if(["+","−","×","÷"].includes(v)){
-            expr += current + " " + v + " ";
-            current = "0";
-        }else if(v==="AC"){
-            current="0"; expr="";
-            history = [];
-        }else if(v==="."){
-            if(!current.includes(".")) current += ".";
-        }else if(v==="+/-"){
-            current = (parseFloat(current)*(-1)).toString();
-        }else if(v==="%"){
-            current = (parseFloat(current)/100).toString();
-        }else if(v==="="){
-            expr += current;
-            
-            try{
-                current = eval(expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")).toString();
-            }catch(e){
-                current = "Error";
-            }
-
-            // 更新歷史紀錄，最多 2 筆
-            history.push(expr + " = " + current);
-            if(history.length > 2) history.shift();
-
-            expr = "";
+        // 語音
+        if(operatorMap[v]){
+            speak(operatorMap[v]);
+        } else if(v === "="){
+            // 計算後唸完整算式
+        } else {
+            speak(v);
         }
 
-        // 顯示 formula（歷史 + 未完成算式）
-        formula.innerText = history.join("\n") + (expr ? "\n" + expr : "");
+        if(!isNaN(v)){
+            current = current==="0"?v:current+v;
+        } else if(["+","−","×","÷"].includes(v)){
+            expr += current + v;
+            current = "0";
+        } else if(v==="AC"){
+            current="0"; expr=""; history=[];
+        } else if(v==="."){
+            if(!current.includes(".")) current += ".";
+        } else if(v==="+/-"){
+            current = (parseFloat(current)*(-1)).toString();
+        } else if(v==="%"){
+            current = (parseFloat(current)/100).toString();
+        } else if(v==="="){
+            expr += current;
+            let resultStr;
+            try{
+                current = eval(expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")).toString();
+                resultStr = current;
+            }catch(e){
+                current = "Error";
+                resultStr = "錯誤";
+            }
 
-        // 顯示目前輸入數字
+            // 歷史
+            history.push(expr + "=" + current);
+            if(history.length>2) history.shift();
+
+            // 唸完整中文算式
+            if(current !== "Error"){
+                let chineseExpr = exprToChinese(expr) + "等於" + numberToChinese(resultStr);
+                speak(chineseExpr);
+            }
+
+            expr="";
+        }
+
+        // 顯示
+        formula.innerText = history.join("\n") + (expr? "\n"+expr : "");
         currentNumber.innerText = current;
     });
 });
 
-// 中文語音（台灣國語）
 function speak(text){
     const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "zh-TW";
-    msg.rate = 1;
-    msg.pitch = 1;
-    msg.volume = 1;
+    msg.lang="zh-TW";
+    msg.rate=1;
+    msg.pitch=1;
+    msg.volume=1;
     speechSynthesis.cancel();
     speechSynthesis.speak(msg);
 }
 
-// PWA 安裝
-if ("serviceWorker" in navigator) {
+// PWA
+if("serviceWorker" in navigator){
     navigator.serviceWorker.register("sw.js");
 }
 </script>
