@@ -1,222 +1,182 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>iOS 計算機</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>iOS Style Calculator</title>
 
 <style>
-  :root{
-    --bg1:#f7f8fb;
-    --bg2:#eef2ff;
-    --accent: linear-gradient(135deg,#7c5cff,#4dd2ff);
-    --radius:20px;
-    --font-main:-apple-system,"SF Pro Text","Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
-  }
-  *{box-sizing:border-box;font-family:var(--font-main);}
+    body {
+        background: black;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
 
-  /* 禁止雙擊放大 */
-  body{
-    margin:0;
-    background:linear-gradient(180deg,var(--bg1),var(--bg2));
-    display:flex;justify-content:center;align-items:center;
-    height:100vh;padding:20px;
-    touch-action: manipulation;
-  }
+    /* 顯示區 */
+    #display {
+        font-size: 4.8rem;
+        text-align: right;
+        padding: 30px 24px;
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+    }
 
-  .app{
-    width:380px;max-width:95vw;
-    padding:20px;border-radius:30px;
-    background:rgba(255,255,255,0.45);
-    backdrop-filter:blur(18px) saturate(140%);
-    box-shadow:0 8px 25px rgba(0,0,0,0.12);
-  }
+    /* 整個按鈕區 */
+    #buttons {
+        padding: 0 10px 25px 10px;
+        display: grid;
+        gap: var(--gap);
+        grid-template-columns: repeat(4, 1fr);
+    }
 
-  /* ============================================
-     三種自動尺寸
-     ============================================ */
-  body.size-small { --btn-size:56px; --btn-font:20px; --gap:10px; --panel-pad:14px; }
-  body.size-medium{ --btn-size:66px; --btn-font:23px; --gap:12px; --panel-pad:16px; }
-  body.size-large { --btn-size:78px; --btn-font:28px; --gap:14px; --panel-pad:22px; }
+    /* iOS 按鈕風格 */
+    .btn {
+        border-radius: 50%;
+        border: none;
+        font-size: var(--font);
+        height: var(--size);
+        width: var(--size);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #333;
+        color: white;
+        transition: transform 0.08s;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    }
 
-  /* 顯示區 */
-  .display{
-    padding:var(--panel-pad);
-    background:rgba(255,255,255,0.7);
-    border-radius:18px;
-    box-shadow:0 6px 18px rgba(30,34,40,0.08);
-    margin-bottom:20px;
-  }
-  .expression{
-    font-size:16px;color:#7f86a6;min-height:22px;
-  }
-  .result{
-    font-size:42px;font-weight:700;text-align:right;margin-top:6px;
-  }
+    /* iOS 按壓動畫 */
+    .btn:active {
+        transform: scale(0.92);
+    }
 
-  /* 按鍵 */
-  .pad{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:var(--gap);
-  }
+    /* iOS 橘色按鈕 */
+    .op {
+        background: #ff9f0a;
+    }
 
-  .btn{
-    width:100%;height:var(--btn-size);
-    border-radius:18px;
-    border:0;
-    background:linear-gradient(180deg,#fff,#f4f5ff);
-    box-shadow:0 4px 14px rgba(0,0,0,0.06);
-    font-size:var(--btn-font);
-    display:flex;justify-content:center;align-items:center;
-    user-select:none;cursor:pointer;font-weight:600;
-    transition:transform .05s ease;
-    touch-action: manipulation;
-  }
+    /* iOS 淺灰功能鍵 */
+    .func {
+        background: #a5a5a5;
+        color: black;
+    }
 
-  .btn:active{
-    transform:scale(0.92);
-  }
+    /* 自動偵測螢幕尺寸：iPhone / Plus / iPad */
+    :root {
+        --size: 72px;    /* default iPhone */
+        --gap: 12px;
+        --font: 2rem;
+    }
 
-  .btn--operator{
-    background:linear-gradient(180deg,#f5f1ff,#ece6ff);
-    color:#4c3bb2;
-  }
+    @media (min-width: 400px) {
+        :root {
+            --size: 82px; /* iPhone Plus */
+            --gap: 14px;
+            --font: 2.2rem;
+        }
+    }
 
-  .btn--accent{
-    background:var(--accent);
-    color:#fff;
-    box-shadow:0 6px 18px rgba(100,70,255,0.22);
-  }
-
-  .btn--wide{grid-column:span 2;}
-  .btn--ghost{
-    background:transparent;
-    border:1px solid rgba(0,0,0,0.08);
-    color:#7e8499;
-  }
+    @media (min-width: 700px) {
+        :root {
+            --size: 110px; /* iPad */
+            --gap: 18px;
+            --font: 3rem;
+        }
+    }
 </style>
 </head>
 
 <body>
-<div class="app">
 
-  <div class="display">
-    <div id="expression" class="expression">0</div>
-    <div id="result" class="result">0</div>
-  </div>
+<div id="display">0</div>
 
-  <div class="pad" id="pad">
-    <button class="btn btn--ghost" data-action="ac">AC</button>
-    <button class="btn btn--ghost" data-action="back">⌫</button>
-    <button class="btn btn--ghost" data-value="(">(</button>
-    <button class="btn btn--ghost" data-value=")">)</button>
+<div id="buttons">
+    <button class="btn func" data-key="del">⌫</button>
+    <button class="btn func" data-key="ac">AC</button>
+    <button class="btn func" data-key="%">%</button>
+    <button class="btn op"   data-key="÷">÷</button>
 
-    <button class="btn" data-value="7">7</button>
-    <button class="btn" data-value="8">8</button>
-    <button class="btn" data-value="9">9</button>
-    <button class="btn btn--operator" data-value="÷">÷</button>
+    <button class="btn" data-key="7">7</button>
+    <button class="btn" data-key="8">8</button>
+    <button class="btn" data-key="9">9</button>
+    <button class="btn op" data-key="×">×</button>
 
-    <button class="btn" data-value="4">4</button>
-    <button class="btn" data-value="5">5</button>
-    <button class="btn" data-value="6">6</button>
-    <button class="btn btn--operator" data-value="×">×</button>
+    <button class="btn" data-key="4">4</button>
+    <button class="btn" data-key="5">5</button>
+    <button class="btn" data-key="6">6</button>
+    <button class="btn op" data-key="−">−</button>
 
-    <button class="btn" data-value="1">1</button>
-    <button class="btn" data-value="2">2</button>
-    <button class="btn" data-value="3">3</button>
-    <button class="btn btn--operator" data-value="-">−</button>
+    <button class="btn" data-key="1">1</button>
+    <button class="btn" data-key="2">2</button>
+    <button class="btn" data-key="3">3</button>
+    <button class="btn op" data-key="+">+</button>
 
-    <button class="btn btn--wide" data-value="0">0</button>
-    <button class="btn" data-value=".">.</button>
-    <button class="btn btn--accent" data-value="=">=</button>
-    <button class="btn btn--operator" data-value="+">+</button>
-  </div>
+    <button class="btn func" data-key="+/-">+/-</button>
+    <button class="btn" data-key="0">0</button>
+    <button class="btn" data-key=".">.</button>
+    <button class="btn op" data-key="=">=</button>
 </div>
 
 <script>
-(()=>{
+const display = document.getElementById("display");
+let buffer = "0";
+let operator = null;
+let previous = null;
 
-  /* ============================
-       自動套用小 / 中 / 大尺寸
-     ============================ */
-  function applySize(){
-    const w = window.innerWidth;
-    if(w < 360) document.body.className = "size-small";
-    else if(w < 768) document.body.className = "size-medium";
-    else document.body.className = "size-large";
-  }
-  applySize();
-  window.addEventListener("resize", applySize);
+function updateDisplay() {
+    display.textContent = buffer;
+}
 
-  const exprEl = document.getElementById("expression");
-  const resEl = document.getElementById("result");
-  const pad = document.getElementById("pad");
+document.querySelectorAll(".btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const key = btn.dataset.key;
 
-  let expression = "";
-  let locked = null;
+        if (!isNaN(key)) {                    // 數字
+            buffer = buffer === "0" ? key : buffer + key;
+        } else if (key === ".") {
+            if (!buffer.includes(".")) buffer += ".";
+        } else if (key === "ac") {
+            buffer = "0";
+            operator = null;
+            previous = null;
+        } else if (key === "del") {
+            buffer = buffer.length > 1 ? buffer.slice(0, -1) : "0";
+        } else if (["+", "−", "×", "÷"].includes(key)) {
+            operator = key;
+            previous = buffer;
+            buffer = "0";
+        } else if (key === "=") {
+            if (operator && previous !== null) {
+                const a = parseFloat(previous);
+                const b = parseFloat(buffer);
 
-  function toEvalStr(s){
-    return s.replace(/×/g,'*').replace(/÷/g,'/')
-            .replace(/−/g,'-')
-            .replace(/(\d+)%/g,'($1/100)');
-  }
+                switch (operator) {
+                    case "+": buffer = (a + b).toString(); break;
+                    case "−": buffer = (a - b).toString(); break;
+                    case "×": buffer = (a * b).toString(); break;
+                    case "÷": buffer = b === 0 ? "Error" : (a / b).toString();
+                }
+                operator = null;
+                previous = null;
+            }
+        } else if (key === "%") {
+            buffer = (parseFloat(buffer) / 100).toString();
+        } else if (key === "+/-") {
+            buffer = (parseFloat(buffer) * -1).toString();
+        }
 
-  function safeEval(expr){
-    try{
-      const v = Function("return " + toEvalStr(expr))();
-      return Number.isFinite(v) ? v : NaN;
-    }catch(e){ return NaN; }
-  }
-
-  function render(){
-    exprEl.textContent = expression || "0";
-    const v = safeEval(expression);
-    resEl.textContent = isNaN(v) ? "—" : v;
-  }
-
-  function push(ch){
-    if(locked && /[0-9.(]/.test(ch)){
-      expression = "";
-      locked = null;
-    }
-    expression += ch;
-    render();
-  }
-
-  function doEqual(){
-    const v = safeEval(expression);
-    if(!isNaN(v)){
-      expression = v.toString();
-      locked = true;
-    }
-    render();
-  }
-
-  pad.addEventListener("click", e=>{
-    const b = e.target.closest("button");
-    if(!b) return;
-
-    if(b.dataset.value){
-      if(b.dataset.value === "=") return doEqual();
-      push(b.dataset.value);
-    }
-
-    if(b.dataset.action === "ac"){
-      expression = "";
-      locked = null;
-      render();
-    }
-
-    if(b.dataset.action === "back"){
-      expression = expression.slice(0,-1);
-      render();
-    }
-  });
-
-  render();
-
-})();
+        updateDisplay();
+    });
+});
 </script>
 
 </body>
